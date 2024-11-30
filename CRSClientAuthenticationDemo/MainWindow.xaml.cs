@@ -1,5 +1,6 @@
 ﻿using CRSClientAuthenticationDemo.Models;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -82,6 +83,7 @@ namespace CRSClientAuthenticationDemo
 
         private async Task<string> FetchEncryptedKey(string macAddress)
         {
+            var timer = Stopwatch.StartNew();
             var apiUrl = "https://localhost:7121/api/token/generate";
 
             var requestPayload = new GenerateTokenRequest
@@ -98,6 +100,10 @@ namespace CRSClientAuthenticationDemo
 
             var responseJson = await response.Content.ReadAsStringAsync();
             dynamic responseObject = JsonConvert.DeserializeObject(responseJson);
+            timer.Stop();
+            var remainingTime = 3000 - (int)timer.ElapsedMilliseconds;
+            await Task.Delay(remainingTime > 0 ? remainingTime : 0);
+
             return responseObject.encryptedToken;
         }
 
@@ -124,15 +130,18 @@ namespace CRSClientAuthenticationDemo
 
         private async Task<string> CallSecureEndpoint()
         {
-            var apiUrl = "https://localhost:7121/api/crs/secure";
+            using(var httpLocalClient = new HttpClient())
+            {
+                var apiUrl = "https://localhost:7121/api/crs/secure";
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + AuthToken);
-            var response = await httpClient.GetAsync(apiUrl);
+                httpLocalClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + AuthToken);
+                var response = await httpLocalClient.GetAsync(apiUrl);
 
-            response.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
 
-            var responseString = await response.Content.ReadAsStringAsync();
-            return responseString;
+                var responseString = await response.Content.ReadAsStringAsync();
+                return responseString;
+            }
         }
     }
 }
