@@ -15,6 +15,7 @@ namespace CRSClientAuthenticationDemo
     public partial class MainWindow : Window
     {
         private static readonly HttpClient httpClient = new HttpClient();
+        private static readonly string baseUrl = @"https://crs-apim-auth-demo.azure-api.net/demo";
         public static string EncryptedKey { get; private set; }
         public static string AuthToken { get; private set; }
 
@@ -84,7 +85,7 @@ namespace CRSClientAuthenticationDemo
         private async Task<string> FetchEncryptedKey(string macAddress)
         {
             var timer = Stopwatch.StartNew();
-            var apiUrl = "https://localhost:7121/api/token/generate";
+            var apiUrl = baseUrl + "/api/token/generate";
 
             var requestPayload = new GenerateTokenRequest
             {
@@ -109,7 +110,7 @@ namespace CRSClientAuthenticationDemo
 
         private async Task<string> ValidateEncryptedKey(string key)
         {
-            var apiUrl = "https://localhost:7121/api/token/validate";
+            var apiUrl = baseUrl + "/api/token/validate";
 
             var requestPayload = new ValidateTokenRequest
             {
@@ -132,7 +133,7 @@ namespace CRSClientAuthenticationDemo
         {
             using(var httpLocalClient = new HttpClient())
             {
-                var apiUrl = "https://localhost:7121/api/crs/secure";
+                var apiUrl = baseUrl + "/api/crs/secure";
 
                 httpLocalClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + AuthToken);
                 var response = await httpLocalClient.GetAsync(apiUrl);
